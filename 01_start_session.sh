@@ -3,11 +3,11 @@
 identify_cluster() {
 	local domain=$(hostname -d)
 	if [[ $domain == "anvil.rcac.purdue.edu" ]]; then
-		echo "You're on Purdue Anvil"
+		echo "anvil.rcac.purdue.edu"
 	elif [[ $domain == "ib.bridges2.psc.edu" ]]; then
-		echo "You're on PSC Bridges-2"
+		echo "ib.bridges2.psc.edu"
 	elif [[ $domain == "expanse.sdsc.edu" ]]; then
-		echo "You're on SDSC Expanse"
+		echo "expanse.sdsc.edu"
 	else
 		echo "ALERT: Cluster not found"
 	fi
