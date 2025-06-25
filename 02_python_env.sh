@@ -10,7 +10,7 @@ case $CLUSTER in
 		conda create --prefix /anvil/projects/x-cis240473/envs/workshop python=3.11 pip -y
 		conda activate /anvil/projects/x-cis240473/envs/workshop
 		pip install ipykernel
-		python -m ipykernel install --prefix=/anvil/projects/x-cis240473/envs/workshop --display-name="Python (workshop)"
+		python -m ipykernel install --user --name=workshop --display-name="Python (workshop)"
                 ;;
         "ib.bridges2.psc.edu")
 		module load anaconda3
@@ -20,7 +20,7 @@ case $CLUSTER in
 		conda create --prefix /ocean/projects/cis240124p/$(whoami)/envs/workshop python=3.11 pip -y
 		conda activate /ocean/projects/cis240124p/$(whoami)/envs/workshop
 		pip install ipykernel
-		python -m ipykernel install --prefix=/ocean/projects/cis240124p/$(whoami)/envs/workshop --display-name="Python (workshop)"
+		python -m ipykernel install --user --name=workshop --display-name="Python (workshop)"
                 ;;
         "expanse.sdsc.edu")
 		module purge
@@ -30,7 +30,7 @@ case $CLUSTER in
 		conda create --prefix /expanse/lustre/projects/ucf122/$(whoami)/envs/workshop python=3.11 pip -y
 		conda activate /expanse/lustre/projects/ucf122/$(whoami)/envs/workshop
 		pip install ipykernel
-		python -m ipykernel install --prefix=/expanse/lustre/projects/ucf122/$(whoami)/envs/workshop --display-name="Python (workshop)"
+		python -m ipykernel install --user --name=workshop --display-name="Python (workshop)"
                 ;;
         *)
                 echo "ALERT: Cluster not found"
