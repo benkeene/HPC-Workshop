@@ -1,5 +1,6 @@
 #!/bin/bash
 
+CLUSTER=$(hostname -d)
 case $CLUSTER in
         "anvil.rcac.purdue.edu")
 		module load anaconda
