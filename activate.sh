@@ -14,3 +14,4 @@ case $CLUSTER in
 	*)
 		echo "ALERT: Cluster not found"
 		;;
+esac
