@@ -18,7 +18,7 @@ echo $CLUSTER
 
 case $CLUSTER in
 	"anvil.rcac.purdue.edu")
-		srun --account=cis240473 --partition=shared --time=01:00:00 --cpus-per-task=4 --job-name="testing" --pty bash
+		srun --account=cis240473 --partition=shared --time=01:00:00 --ntasks-per-node=4 --job-name="testing" --pty bash
 		;;
 	"ib.bridges2.psc.edu")
 		interact -A cis240124p -p RM-shared -t 1:00:00 -n 4
