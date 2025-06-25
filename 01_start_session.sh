@@ -1,19 +1,6 @@
 #!/bin/bash
 
-identify_cluster() {
-	local domain=$(hostname -d)
-	if [[ $domain == "anvil.rcac.purdue.edu" ]]; then
-		echo "anvil.rcac.purdue.edu"
-	elif [[ $domain == "ib.bridges2.psc.edu" ]]; then
-		echo "ib.bridges2.psc.edu"
-	elif [[ $domain == "expanse.sdsc.edu" ]]; then
-		echo "expanse.sdsc.edu"
-	else
-		echo "ALERT: Cluster not found"
-	fi
-}
-
-CLUSTER=$(identify_cluster)
+CLUSTER=$(hostname -d)
 echo $CLUSTER
 
 case $CLUSTER in
