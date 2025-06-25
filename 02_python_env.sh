@@ -15,8 +15,8 @@ case $CLUSTER in
 		conda init bash
 		export CONDA_PKGS_DIR=/ocean/projects/cis240124p/$(whoami)/.conda/packages
 		export PIP_CACHE_DIR=/ocean/projects/cis240124p/$(whoami)/.conda/packages
-		conda create --prefix /ocean/projects/cis240124p/envs/workshop python=3.11 pip -y
-		conda activate /ocean/projects/cis240124p/envs/workshop
+		conda create --prefix /ocean/projects/cis240124p/$(whoami)/envs/workshop python=3.11 pip -y
+		conda activate /ocean/projects/cis240124p/$(whoami)/envs/workshop
                 ;;
         "expanse.sdsc.edu")
 
