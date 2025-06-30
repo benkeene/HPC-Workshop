@@ -26,7 +26,7 @@ class HeatEquationDatasetGenerator:
 
         # Default parameters
         self.params = {
-            "n_samples": 100,
+            "n_samples": 1000,
             "nx": 128,
             "ny": 128,
             "Lx": 2.0 * torch.pi,

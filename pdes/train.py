@@ -393,7 +393,7 @@ if __name__ == "__main__":
             "n_layers": 4,
         },
         "training_config": {
-            "epochs": 5,
+            "epochs": 500,
             "learning_rate": 1e-3,
             "log_interval": 10,
         },
@@ -429,5 +429,3 @@ if __name__ == "__main__":
 
     # Plot training history
     plot_training_history(history, dataset=dataset)
-
-    import IPython; IPython.embed()
