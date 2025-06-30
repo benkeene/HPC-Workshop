@@ -26,14 +26,14 @@ class HeatEquationDatasetGenerator:
 
         # Default parameters
         self.params = {
-            "n_samples": 10,
+            "n_samples": 1000,
             "nx": 128,
             "ny": 128,
             "Lx": 2.0 * torch.pi,
             "Ly": 2.0 * torch.pi,
             "T": 0.5,
             "dt": 0.001,
-            "alpha": 0.1,
+            "alpha": 0.2,
             "save_evolution": True,
             "output_dir": "heat_data",
             "batch_size": 1000,
@@ -390,7 +390,7 @@ class HeatEquationDatasetGenerator:
         print("Number of samples:", dataset["initial_conditions"].shape[0])
         print("Grid size:", dataset["initial_conditions"].shape[1], "x", dataset["initial_conditions"].shape[2])
         print(
-            f"Initial temperature range: [{dataset["initial_conditions"].min():.4f}, "
+            f"Initial temperature range: {dataset["initial_conditions"].min():.4f}, "
             f"{dataset["initial_conditions"].max():.4f}]"
         )
 
