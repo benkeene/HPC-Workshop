@@ -197,3 +197,5 @@ cython_debug/
 .DS_Store
 
 pdes/heat_data/*
+pdes/*.pth
+pdes/*.png
