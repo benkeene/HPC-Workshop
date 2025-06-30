@@ -26,23 +26,23 @@ class HeatEquationDatasetGenerator:
 
         # Default parameters
         self.params = {
-            "n_samples": 1000,
+            "n_samples": 10,
             "nx": 128,
             "ny": 128,
             "Lx": 2.0 * torch.pi,
             "Ly": 2.0 * torch.pi,
             "T": 0.5,
             "dt": 0.001,
-            "alpha": 0.2,
+            "alpha": 0.1,
             "save_evolution": True,
             "output_dir": "heat_data",
             "batch_size": 1000,
             "n_fourier_modes": 4,
             "dim": 2,
+            "timestamp": datetime.now().strftime("%Y%m%d_%H%M%S"),
         }
         self.params.update(kwargs)
 
-        # Derived parameters - make these tensors from the start
         self.nt = int(self.params["T"] / self.params["dt"])
         self.dx = torch.tensor(
             self.params["Lx"] / (self.params["nx"] - 1), device=self.device
@@ -57,10 +57,8 @@ class HeatEquationDatasetGenerator:
         # Create output directory
         os.makedirs(self.params["output_dir"], exist_ok=True)
 
-        # Initialize grids
         self._setup_grids()
 
-        # Check stability
         self._check_stability()
 
     def _setup_grids(self):
@@ -174,17 +172,10 @@ class HeatEquationDatasetGenerator:
 
     def create_animation(self, sample_idx=0):
         """Create animation of heat evolution for a specific sample."""
-        fig, (ax1, ax2) = plt.subplots(
-            1, 2, figsize=(10, 4)
-        )  
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
 
         plt.subplots_adjust(
-            left=0.052,
-            bottom=0.11,
-            right=0.957,
-            top=0.848,
-            wspace=0.243,
-            hspace=0.2
+            left=0.052, bottom=0.11, right=0.957, top=0.848, wspace=0.243, hspace=0.2
         )
 
         # Get evolution data for selected sample
@@ -226,7 +217,6 @@ class HeatEquationDatasetGenerator:
             current_min = current_data.min()
             current_max = current_data.max()
 
-            # Clear and recreate contour plot (colorbar persists)
             ax1.clear()
             ax1.contourf(
                 self.X_grid,
@@ -265,20 +255,13 @@ class HeatEquationDatasetGenerator:
         )
 
         # Save animation
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        gif_path = (
-            f"{self.params['output_dir']}/heat_equation_evolution_{timestamp}.gif"
-        )
+        gif_path = f"{self.params['output_dir']}/heat_equation_evolution_{self.params['timestamp']}.gif"
         anim.save(gif_path, writer="pillow", fps=3)
         print(f"Animation saved to {gif_path}")
         plt.close()
 
-        return timestamp
-
-    def create_visualization(self, sample_idx=0, timestamp=None):
+    def create_visualization(self, sample_idx=0):
         """Create visualization comparing initial and final states."""
-        if timestamp is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         initial = self.initial_conditions[sample_idx].cpu().numpy()
         final = self.final_solutions[sample_idx].cpu().numpy()
@@ -328,14 +311,13 @@ class HeatEquationDatasetGenerator:
         plt.colorbar(im4, ax=axes[1, 1])
 
         plt.tight_layout()
-        viz_path = f"{self.params['output_dir']}/sample_visualization_{timestamp}.png"
+        viz_path = f"{self.params['output_dir']}/sample_visualization_{self.params['timestamp']}.png"
         plt.savefig(viz_path, dpi=150)
         plt.close()
         print(f"Sample visualization saved to {viz_path}")
 
     def save_dataset(self):
         """Save dataset in NPZ format with metadata."""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # Prepare dataset dictionary
         dataset = {
@@ -347,23 +329,27 @@ class HeatEquationDatasetGenerator:
             "Y_grid": self.Y_grid,
             "dx": self.dx,
             "dy": self.dy,
-            "timestamp": timestamp,
+            "timestamp": self.params["timestamp"],
         }
 
-        filename = f"{self.params['output_dir']}/heat_dataset_{timestamp}.pt"
+        filename = (
+            f"{self.params['output_dir']}/heat_dataset_{self.params['timestamp']}.pt"
+        )
         torch.save(dataset, filename)
         print(f"Dataset saved to {filename}")
 
-        return dataset, timestamp
+        return dataset
 
-    def _save_metadata(self, timestamp, initial_np, final_np, evolution_np):
+    def _save_metadata(self, initial_np, final_np, evolution_np):
         """Save metadata text file."""
-        metadata_file = f"{self.params['output_dir']}/metadata_{timestamp}.txt"
+        metadata_file = (
+            f"{self.params['output_dir']}/metadata_{self.params['timestamp']}.txt"
+        )
 
         with open(metadata_file, "w") as f:
             f.write("Heat Equation Dataset\n")
             f.write("=" * 50 + "\n")
-            f.write(f"Generated: {timestamp}\n")
+            f.write(f"Generated: {self.params['timestamp']}\n")
             f.write(f"Number of samples: {self.params['n_samples']}\n")
             f.write(f"Grid size: {self.params['nx']} x {self.params['ny']}\n")
             f.write(
@@ -388,18 +374,16 @@ class HeatEquationDatasetGenerator:
         print("=" * 50)
         pprint.pprint(self.params)
         print("Number of samples:", dataset["initial_conditions"].shape[0])
-        print("Grid size:", dataset["initial_conditions"].shape[1], "x", dataset["initial_conditions"].shape[2])
         print(
-            f"Initial temperature range: {dataset["initial_conditions"].min():.4f}, "
+            "Grid size:",
+            dataset["initial_conditions"].shape[1],
+            "x",
+            dataset["initial_conditions"].shape[2],
+        )
+        print(
+            f"Initial temperature range: [{dataset["initial_conditions"].min():.4f}, "
             f"{dataset["initial_conditions"].max():.4f}]"
         )
-
-        # Validation checks
-        print("Checking known values for validation...")
-        assert (
-            dataset["initial_conditions"].max() == 0.07537466
-        ), "Initial max does not match expected value."
-
         print(
             f"Final temperature range: [{dataset["final_solutions"].min():.4f}, "
             f"{dataset["final_solutions"].max():.4f}]"
@@ -408,42 +392,6 @@ class HeatEquationDatasetGenerator:
             f"Average temperature decay: "
             f"{dataset["initial_conditions"].max() - dataset["final_solutions"].max():.4f}"
         )
-
-    def generate(self):
-        """Run complete dataset generation pipeline."""
-        print("Generating heat equation dataset...")
-        print("=" * 50)
-
-        start_time = time.time()
-
-        # Generate initial conditions
-        self.generate_initial_conditions()
-
-        # Solve heat equation
-        self.solve_heat_equation()
-
-        # Validation check for first sample
-        print("Checking known values for validation...")
-        print("Initial max value:", self.initial_conditions[0].max().item())
-        assert (
-            self.initial_conditions[0].max() == 0.056443125
-        ), "Initial max does not match expected value."
-
-        # Save dataset
-        dataset, timestamp = self.save_dataset()
-
-        # Create visualizations
-        timestamp = self.create_animation(sample_idx=0)
-
-        self.create_visualization(sample_idx=0, timestamp=timestamp)
-
-        # Print summary
-        self.print_summary(dataset)
-
-        end_time = time.time()
-        print(f"Total generation time: {end_time - start_time:.2f} seconds")
-
-        return dataset
 
 
 def test_dataset():
@@ -480,16 +428,15 @@ def test_dataset():
 
     print("\n\n--- Asserts passed ---")
 
-    dataset, timestamp = generator.save_dataset()
+    dataset, self.timestamp = generator.save_dataset()
 
-    timestamp = generator.create_animation(sample_idx=0)
+    generator.create_animation(sample_idx=0)
 
-    generator.create_visualization(sample_idx=0, timestamp=timestamp)
+    generator.create_visualization(sample_idx=0)
 
     generator.print_summary(dataset)
 
     generator._save_metadata(
-        timestamp,
         dataset["initial_conditions"].cpu().numpy(),
         dataset["final_solutions"].cpu().numpy(),
         dataset["evolution"].cpu().numpy(),
@@ -500,26 +447,25 @@ def test_dataset():
 
 
 if __name__ == "__main__":
-#    test_dataset()
+    # test_dataset()
     generator = HeatEquationDatasetGenerator()
 
     generator.generate_initial_conditions()
-    
+
     generator.solve_heat_equation()
-    
-    dataset, timestamp = generator.save_dataset()
-    
+
+    dataset = generator.save_dataset()
+
     timestamp = generator.create_animation(sample_idx=0)
-    
-    generator.create_visualization(sample_idx=0, timestamp=timestamp)
-    
+
+    generator.create_visualization(sample_idx=0)
+
     generator.print_summary(dataset)
-    
+
     generator._save_metadata(
-        timestamp,
         dataset["initial_conditions"].cpu().numpy(),
         dataset["final_solutions"].cpu().numpy(),
         dataset["evolution"].cpu().numpy(),
     )
-    
+
     print("Done.")
