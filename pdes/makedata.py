@@ -26,7 +26,7 @@ class HeatEquationDatasetGenerator:
 
         # Default parameters
         self.params = {
-            "n_samples": 10,
+            "n_samples": 1000,
             "nx": 128,
             "ny": 128,
             "Lx": 2.0 * torch.pi,
@@ -381,16 +381,16 @@ class HeatEquationDatasetGenerator:
             dataset["initial_conditions"].shape[2],
         )
         print(
-            f"Initial temperature range: [{dataset["initial_conditions"].min():.4f}, "
-            f"{dataset["initial_conditions"].max():.4f}]"
+            f"Initial temperature range: [{dataset['initial_conditions'].min():.4f}, "
+            f"{dataset['initial_conditions'].max():.4f}]"
         )
         print(
-            f"Final temperature range: [{dataset["final_solutions"].min():.4f}, "
-            f"{dataset["final_solutions"].max():.4f}]"
+            f"Final temperature range: [{dataset['final_solutions'].min():.4f}, "
+            f"{dataset['final_solutions'].max():.4f}]"
         )
         print(
             f"Average temperature decay: "
-            f"{dataset["initial_conditions"].max() - dataset["final_solutions"].max():.4f}"
+            f"{dataset['initial_conditions'].max() - dataset['final_solutions'].max():.4f}"
         )
 
 
