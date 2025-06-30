@@ -26,7 +26,7 @@ class HeatEquationDatasetGenerator:
 
         # Default parameters
         self.params = {
-            "n_samples": 1000,
+            "n_samples": 100,
             "nx": 128,
             "ny": 128,
             "Lx": 2.0 * torch.pi,
@@ -66,15 +66,8 @@ class HeatEquationDatasetGenerator:
         x = torch.linspace(0, self.params["Lx"], self.params["nx"], device=self.device)
         y = torch.linspace(0, self.params["Ly"], self.params["ny"], device=self.device)
 
-        # Create 2D grids
         self.X = x.repeat(self.params["ny"], 1).T
         self.Y = y.repeat(self.params["nx"], 1)
-
-        # NumPy versions for saving
-        self.x_np = np.linspace(0, self.params["Lx"], self.params["nx"])
-        self.y_np = np.linspace(0, self.params["Ly"], self.params["ny"])
-        self.X_grid = np.tile(self.x_np, (self.params["ny"], 1)).T
-        self.Y_grid = np.tile(self.y_np, (self.params["nx"], 1))
 
         assert self.X.shape == (self.params["nx"], self.params["ny"])
         assert self.Y.shape == (self.params["nx"], self.params["ny"])
@@ -99,7 +92,6 @@ class HeatEquationDatasetGenerator:
             self.params["ny"],
             device=self.device,
         )
-        # self.sample_parameters = []
 
         generator = FourierRandomFunctionGenerator(
             dim=2, n_modes=self.params["n_fourier_modes"], device=self.device
@@ -108,12 +100,6 @@ class HeatEquationDatasetGenerator:
         for i in range(self.params["n_samples"]):
             u = generator.generate(self.X, self.Y).to(self.device)
             self.initial_conditions[i] = u
-            # self.sample_parameters.append(
-            # {
-            # "type": "fourier",
-            # "n_modes": self.params["n_fourier_modes"],
-            # }
-            # )
 
     def solve_heat_equation(self):
         """Solve heat equation using finite differences with periodic boundaries."""
@@ -189,8 +175,8 @@ class HeatEquationDatasetGenerator:
 
         # Initialize contour plot
         contour_plot = ax1.contourf(
-            self.X_grid,
-            self.Y_grid,
+            self.X.cpu(),
+            self.Y.cpu(),
             initial_data,
             levels=levels,
             cmap="hot",
@@ -219,8 +205,8 @@ class HeatEquationDatasetGenerator:
 
             ax1.clear()
             ax1.contourf(
-                self.X_grid,
-                self.Y_grid,
+                self.X.cpu(),
+                self.Y.cpu(),
                 current_data,
                 levels=levels,
                 cmap="hot",
@@ -270,7 +256,7 @@ class HeatEquationDatasetGenerator:
 
         # Initial condition - contour
         im1 = axes[0, 0].contourf(
-            self.X_grid, self.Y_grid, initial, levels=20, cmap="hot"
+            self.X.cpu(), self.Y.cpu(), initial, levels=20, cmap="hot"
         )
         axes[0, 0].set_title("Initial Condition (Contour)")
         axes[0, 0].set_xlabel("x")
@@ -291,7 +277,7 @@ class HeatEquationDatasetGenerator:
 
         # Final solution - contour
         im3 = axes[1, 0].contourf(
-            self.X_grid, self.Y_grid, final, levels=20, cmap="hot"
+            self.X.cpu(), self.Y.cpu(), final, levels=20, cmap="hot"
         )
         axes[1, 0].set_title(f'Final Solution (t={self.params["T"]}) - Contour')
         axes[1, 0].set_xlabel("x")
@@ -324,9 +310,9 @@ class HeatEquationDatasetGenerator:
             "initial_conditions": self.initial_conditions,
             "final_solutions": self.final_solutions,
             "evolution": self.evolution,
-            "parameters": self.params,
-            "X_grid": self.X_grid,
-            "Y_grid": self.Y_grid,
+            "params": self.params,
+            "X": self.X,
+            "Y": self.Y,
             "dx": self.dx,
             "dy": self.dy,
             "timestamp": self.params["timestamp"],
@@ -428,7 +414,7 @@ def test_dataset():
 
     print("\n\n--- Asserts passed ---")
 
-    dataset, self.timestamp = generator.save_dataset()
+    dataset = generator.save_dataset()
 
     generator.create_animation(sample_idx=0)
 
@@ -463,9 +449,9 @@ if __name__ == "__main__":
     generator.print_summary(dataset)
 
     generator._save_metadata(
-        dataset["initial_conditions"].cpu().numpy(),
-        dataset["final_solutions"].cpu().numpy(),
-        dataset["evolution"].cpu().numpy(),
+        dataset["initial_conditions"],
+        dataset["final_solutions"],
+        dataset["evolution"],
     )
 
     print("Done.")

@@ -18,6 +18,29 @@ device = torch.device(
 
 print(f"Using device: {device}")
 
+def load_dataset(data_path=None, data_dir="heat_data"):
+    if data_path is None:
+        pattern = os.path.join(data_dir, "heat_dataset_*.pt")
+        data_files = glob.glob(pattern)
+        data_path = max(data_files, key=os.path.getmtime)
+        print(f"Loading most recent dataset: {data_path}")
+    else:
+        print(f"Loading specified dataset: {data_path}")
+    
+    dataset = torch.load(data_path, map_location=device, weights_only=False)
+
+    assert len(dataset['initial_conditions']) == len(dataset['final_solutions']) == dataset['params']['n_samples'], \
+        "Mismatch in number of samples between initial conditions and final solutions."
+
+    print(f"Loaded dataset with {dataset['params']['n_samples']} samples")
+    print(f"Grid size: {dataset['params']['nx']} x {dataset['params']['ny']}")
+    print(f"Data shape: {dataset['initial_conditions'].shape}")
+    print(f"Temperature range - Initial: [{dataset['initial_conditions'].min():.4f}, {dataset['initial_conditions'].max():.4f}]")
+    print(f"Temperature range - Final: [{dataset['final_solutions'].min():.4f}, {dataset['final_solutions'].max():.4f}]")
+
+    return dataset
+    
+
 
 def load_heat_data(data_path=None, data_dir="heat_data"):
     """
@@ -126,7 +149,7 @@ def create_fno_model(grid_size=(64, 64), model_config=None):
     return model
 
 
-def train_model(model, train_loader, test_loader, training_config=None):
+def train_model(model, train_loader, test_loader, training_config):
 
     optimizer = torch.optim.Adam(
         model.parameters(), lr=training_config["learning_rate"]
@@ -178,7 +201,7 @@ def train_model(model, train_loader, test_loader, training_config=None):
         # Save best model
         if test_loss < best_test_loss:
             best_test_loss = test_loss
-            torch.save(model.state_dict(), "best_fno_model.pth")
+            torch.save(model.state_dict(), f"{dataset['params']['output_dir']}/fno_model_{training_config['timestamp']}.pth")
 
         # Log progress
         if epoch % training_config["log_interval"] == 0:
@@ -190,11 +213,12 @@ def train_model(model, train_loader, test_loader, training_config=None):
         model.train()
 
     print(f"\nTraining completed! Best test loss: {best_test_loss:.6f}")
+    print(f"Best model saved as 'heat_data/fno_model_{training_config['timestamp']}.pth'")
 
     return model, history
 
 
-def visualize_results(model, test_data, metadata, n_samples=4):
+def visualize_results(model, test_data, dataset=None, n_samples=4):
     """
     Visualize model predictions vs true solutions
     """
@@ -205,7 +229,7 @@ def visualize_results(model, test_data, metadata, n_samples=4):
         # Get predictions for first few test samples
         X_sample = X_test[:n_samples].to(device)
         y_pred = model(X_sample).cpu()
-        y_true = y_test[:n_samples]
+        y_true = y_test[:n_samples].cpu()
         X_sample = X_sample.cpu()
 
     fig, axes = plt.subplots(3, n_samples, figsize=(4 * n_samples, 12))
@@ -234,8 +258,7 @@ def visualize_results(model, test_data, metadata, n_samples=4):
     plt.tight_layout()
 
     # Save figure
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plt.savefig(f"fno_results_{timestamp}.png", dpi=150, bbox_inches="tight")
+    plt.savefig(f"heat_data/fno_results_{dataset['params']['timestamp']}.png", dpi=150, bbox_inches="tight")
     plt.show()
 
     # Calculate error metrics
@@ -251,7 +274,7 @@ def visualize_results(model, test_data, metadata, n_samples=4):
     return mse.item(), mae.item(), relative_error.item()
 
 
-def plot_training_history(history):
+def plot_training_history(history, dataset=None):
     """Plot training history"""
     fig, ax = plt.subplots(1, 1, figsize=(10, 6))
 
@@ -267,8 +290,7 @@ def plot_training_history(history):
 
     plt.tight_layout()
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plt.savefig(f"training_history_{timestamp}.png", dpi=150, bbox_inches="tight")
+    plt.savefig(f"{dataset['params']['output_dir']}/training_history_{dataset['params']['timestamp']}.png", dpi=150, bbox_inches="tight")
     plt.show()
 
 
@@ -354,4 +376,58 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+
+    config = {
+        "data_path": None,  # Will auto-find latest dataset
+        "data_dir": "heat_data",
+        "train_split": 0.8,
+        "batch_size": 100,
+        "model_config": {
+            "n_modes": (16, 16),
+            "hidden_channels": 64,
+            "in_channels": 1,
+            "out_channels": 1,
+            "lifting_channels": 128,
+            "projection_channels": 128,
+            "n_layers": 4,
+        },
+        "training_config": {
+            "epochs": 5,
+            "learning_rate": 1e-3,
+            "log_interval": 10,
+        },
+    }
+
+    # Load dataset
+    dataset = load_dataset()
+
+    config['training_config']['timestamp'] = dataset['params']['timestamp']
+
+    # Create data loaders
+    train_loader, test_loader, test_data = create_data_loaders(
+        X_data=dataset['initial_conditions'],
+        y_data=dataset['final_solutions'],
+        train_split=config['train_split'],
+        batch_size=config['batch_size'],
+    )
+
+    # Create FNO model
+    grid_size = (dataset['params']['nx'], dataset['params']['ny'])
+    model = create_fno_model(grid_size, config['model_config'])
+
+    # Train model
+    start_time = time.time()
+    model, history = train_model(
+        model, train_loader, test_loader, config['training_config']
+    )
+    end_time = time.time()
+    print(f"Total training time: {end_time - start_time:.2f} seconds")
+
+    #Visualize results
+    mse, mae, rel_error = visualize_results(model, test_data, dataset=dataset)
+
+    # Plot training history
+    plot_training_history(history, dataset=dataset)
+
+    import IPython; IPython.embed()
