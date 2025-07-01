@@ -18,6 +18,7 @@ device = torch.device(
 
 print(f"Using device: {device}")
 
+
 def load_dataset(data_path=None, data_dir="heat_data"):
     if data_path is None:
         pattern = os.path.join(data_dir, "heat_dataset_*.pt")
@@ -26,20 +27,26 @@ def load_dataset(data_path=None, data_dir="heat_data"):
         print(f"Loading most recent dataset: {data_path}")
     else:
         print(f"Loading specified dataset: {data_path}")
-    
+
     dataset = torch.load(data_path, map_location=device, weights_only=False)
 
-    assert len(dataset['initial_conditions']) == len(dataset['final_solutions']) == dataset['params']['n_samples'], \
-        "Mismatch in number of samples between initial conditions and final solutions."
+    assert (
+        len(dataset["initial_conditions"])
+        == len(dataset["final_solutions"])
+        == dataset["params"]["n_samples"]
+    ), "Mismatch in number of samples between initial conditions and final solutions."
 
     print(f"Loaded dataset with {dataset['params']['n_samples']} samples")
     print(f"Grid size: {dataset['params']['nx']} x {dataset['params']['ny']}")
     print(f"Data shape: {dataset['initial_conditions'].shape}")
-    print(f"Temperature range - Initial: [{dataset['initial_conditions'].min():.4f}, {dataset['initial_conditions'].max():.4f}]")
-    print(f"Temperature range - Final: [{dataset['final_solutions'].min():.4f}, {dataset['final_solutions'].max():.4f}]")
+    print(
+        f"Temperature range - Initial: [{dataset['initial_conditions'].min():.4f}, {dataset['initial_conditions'].max():.4f}]"
+    )
+    print(
+        f"Temperature range - Final: [{dataset['final_solutions'].min():.4f}, {dataset['final_solutions'].max():.4f}]"
+    )
 
     return dataset
-    
 
 
 def load_heat_data(data_path=None, data_dir="heat_data"):
@@ -201,7 +208,10 @@ def train_model(model, train_loader, test_loader, training_config):
         # Save best model
         if test_loss < best_test_loss:
             best_test_loss = test_loss
-            torch.save(model.state_dict(), f"{dataset['params']['output_dir']}/fno_model_{training_config['timestamp']}.pth")
+            torch.save(
+                model.state_dict(),
+                f"{dataset['params']['output_dir']}/fno_model_{training_config['timestamp']}.pth",
+            )
 
         # Log progress
         if epoch % training_config["log_interval"] == 0:
@@ -213,7 +223,9 @@ def train_model(model, train_loader, test_loader, training_config):
         model.train()
 
     print(f"\nTraining completed! Best test loss: {best_test_loss:.6f}")
-    print(f"Best model saved as 'heat_data/fno_model_{training_config['timestamp']}.pth'")
+    print(
+        f"Best model saved as 'heat_data/fno_model_{training_config['timestamp']}.pth'"
+    )
 
     return model, history
 
@@ -258,7 +270,11 @@ def visualize_results(model, test_data, dataset=None, n_samples=4):
     plt.tight_layout()
 
     # Save figure
-    plt.savefig(f"heat_data/fno_results_{dataset['params']['timestamp']}.png", dpi=150, bbox_inches="tight")
+    plt.savefig(
+        f"heat_data/fno_results_{dataset['params']['timestamp']}.png",
+        dpi=150,
+        bbox_inches="tight",
+    )
     plt.show()
 
     # Calculate error metrics
@@ -290,7 +306,11 @@ def plot_training_history(history, dataset=None):
 
     plt.tight_layout()
 
-    plt.savefig(f"{dataset['params']['output_dir']}/training_history_{dataset['params']['timestamp']}.png", dpi=150, bbox_inches="tight")
+    plt.savefig(
+        f"{dataset['params']['output_dir']}/training_history_{dataset['params']['timestamp']}.png",
+        dpi=150,
+        bbox_inches="tight",
+    )
     plt.show()
 
 
@@ -402,29 +422,29 @@ if __name__ == "__main__":
     # Load dataset
     dataset = load_dataset()
 
-    config['training_config']['timestamp'] = dataset['params']['timestamp']
+    config["training_config"]["timestamp"] = dataset["params"]["timestamp"]
 
     # Create data loaders
     train_loader, test_loader, test_data = create_data_loaders(
-        X_data=dataset['initial_conditions'],
-        y_data=dataset['final_solutions'],
-        train_split=config['train_split'],
-        batch_size=config['batch_size'],
+        X_data=dataset["initial_conditions"],
+        y_data=dataset["final_solutions"],
+        train_split=config["train_split"],
+        batch_size=config["batch_size"],
     )
 
     # Create FNO model
-    grid_size = (dataset['params']['nx'], dataset['params']['ny'])
-    model = create_fno_model(grid_size, config['model_config'])
+    grid_size = (dataset["params"]["nx"], dataset["params"]["ny"])
+    model = create_fno_model(grid_size, config["model_config"])
 
     # Train model
     start_time = time.time()
     model, history = train_model(
-        model, train_loader, test_loader, config['training_config']
+        model, train_loader, test_loader, config["training_config"]
     )
     end_time = time.time()
     print(f"Total training time: {end_time - start_time:.2f} seconds")
 
-    #Visualize results
+    # Visualize results
     mse, mae, rel_error = visualize_results(model, test_data, dataset=dataset)
 
     # Plot training history
