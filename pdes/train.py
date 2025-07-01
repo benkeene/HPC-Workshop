@@ -250,19 +250,19 @@ def visualize_results(model, test_data, dataset=None, n_samples=4):
 
     for i in range(n_samples):
         # Initial condition
-        im0 = axes[0, i].imshow(X_sample[i, 0], cmap="viridis", origin="lower")
+        im0 = axes[0, i].imshow(X_sample[i, 0], cmap="hot", origin="lower")
         axes[0, i].set_title(f"Initial Condition {i+1}")
         axes[0, i].axis("off")
         plt.colorbar(im0, ax=axes[0, i], fraction=0.046, pad=0.04)
 
         # True solution
-        im1 = axes[1, i].imshow(y_true[i, 0], cmap="viridis", origin="lower")
+        im1 = axes[1, i].imshow(y_true[i, 0], cmap="hot", origin="lower")
         axes[1, i].set_title(f"True Solution {i+1}")
         axes[1, i].axis("off")
         plt.colorbar(im1, ax=axes[1, i], fraction=0.046, pad=0.04)
 
         # Predicted solution
-        im2 = axes[2, i].imshow(y_pred[i, 0], cmap="viridis", origin="lower")
+        im2 = axes[2, i].imshow(y_pred[i, 0], cmap="hot", origin="lower")
         axes[2, i].set_title(f"FNO Prediction {i+1}")
         axes[2, i].axis("off")
         plt.colorbar(im2, ax=axes[2, i], fraction=0.046, pad=0.04)
@@ -410,7 +410,7 @@ if __name__ == "__main__":
             "out_channels": 1,
             "lifting_channels": 128,
             "projection_channels": 128,
-            "n_layers": 4,
+            "n_layers": 1,
         },
         "training_config": {
             "epochs": 500,
