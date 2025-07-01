@@ -199,3 +199,5 @@ cython_debug/
 pdes/heat_data/*
 pdes/*.pth
 pdes/*.png
+pdes/heat_data/*
+fcnn/results/*
