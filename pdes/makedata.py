@@ -26,18 +26,18 @@ class HeatEquationDatasetGenerator:
 
         # Default parameters
         self.params = {
-            "n_samples": 1000,
+            "n_samples": 100,
             "nx": 128,
             "ny": 128,
             "Lx": 2.0 * torch.pi,
             "Ly": 2.0 * torch.pi,
             "T": 0.5,
             "dt": 0.001,
-            "alpha": 0.1,
+            "alpha": 1,
             "save_evolution": True,
             "output_dir": "heat_data",
             "batch_size": 1000,
-            "n_fourier_modes": 4,
+            "n_fourier_modes": 3,
             "dim": 2,
             "timestamp": datetime.now().strftime("%Y%m%d_%H%M%S"),
         }
