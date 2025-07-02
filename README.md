@@ -53,3 +53,17 @@ For example, if tomorrow you wish to log in to the cluster and work on this mate
 source 01_start_session.sh
 source activate.sh
 ```
+
+# Github SSH
+
+https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
+
+Add to your `.ssh/config`
+
+```shell
+host github.com
+        User git
+        Hostname github.com
+        PreferredAuthentications publickey
+        IdentityFile ~/.ssh/id_github
+```
