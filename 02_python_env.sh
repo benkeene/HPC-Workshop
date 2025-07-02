@@ -11,6 +11,7 @@ case $CLUSTER in
 	conda activate /anvil/projects/x-cis240473/envs/workshop
 	pip install ipykernel
 	python -m ipykernel install --user --name=workshop --display-name="Python (workshop)"
+	pip install -r requirements.txt
 	;;
 "ib.bridges2.psc.edu")
 	module load anaconda3
@@ -21,6 +22,7 @@ case $CLUSTER in
 	conda activate /ocean/projects/cis240124p/$(whoami)/envs/workshop
 	pip install ipykernel
 	python -m ipykernel install --user --name=workshop --display-name="Python (workshop)"
+	pip install -r requirements.txt
 	;;
 "expanse.sdsc.edu")
 	module purge
@@ -31,6 +33,7 @@ case $CLUSTER in
 	conda activate /expanse/lustre/projects/ucf122/$(whoami)/envs/workshop
 	pip install ipykernel
 	python -m ipykernel install --user --name=workshop --display-name="Python (workshop)"
+	pip install -r requirements.txt
 	;;
 *)
 	echo "ALERT: Cluster not found"
