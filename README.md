@@ -24,6 +24,12 @@ View your resource username(s) on the rightmost column of our project.
 
 [Open OnDemand](https://ondemand.bridges2.psc.edu/)
 
+To start a GPU job on PSC Bridges-2, log in  via ssh or open ondemand and run the command:
+
+```shell
+srun --account=cis240124p --partition=GPU-shared --gres=gpu:h100-80:1 --cpus-per-task=12 --time=1:00:00 --pty bash
+```
+
 ## SDSC
 
 [Expanse user guide](https://www.sdsc.edu/systems/expanse/user_guide.html)
